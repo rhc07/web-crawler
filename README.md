@@ -1,5 +1,5 @@
 
-# web-crawler
+# Web-crawler
 A classic web-crawler that uses Golang to output HTML properties
 
 
@@ -72,4 +72,3 @@ make run
 
 This problem has already been solved by the Vidsy engineering team and will
 never be used in production.
->>>>>>> 8adb735 (initial commit)
