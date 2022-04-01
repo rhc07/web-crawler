@@ -33,11 +33,11 @@ func TestGetAnchorLinks(t *testing.T) {
 		input  io.Reader
 		output []string
 	}{
-		{input: testResponse.Body, output: []string{"http://www.pointlesssites.com/"}},
+		{input: testBody, output: []string{"http://www.pointlesssites.com/"}},
 	}
 
 	for _, test := range tests {
-		actual := GetAnchorLinks(testBody)
+		actual := GetAnchorLinks(test.input)
 		if actual != nil {
 			t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, actual, test.output)
 		}
