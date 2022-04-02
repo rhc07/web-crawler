@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"testing"
@@ -17,12 +18,13 @@ func TestGetResponseBody(t *testing.T) {
 		input string
 		body  io.Reader
 	}{
-		{input: testInput, body: io.Reader(testBody)},
+		{input: testInput, body: testBody},
 	}
 
 	for _, test := range tests {
 		err := GetResponseBody(test.input)
-		if err != test.body {
+		res := bytes.Equal(StreamToByte(err), StreamToByte(test.body))
+		if res != true {
 			t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, err, test.body)
 		}
 	}
@@ -38,8 +40,18 @@ func TestGetAnchorLinks(t *testing.T) {
 
 	for _, test := range tests {
 		actual := GetAnchorLinks(test.input)
-		if actual != nil {
-			t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, actual, test.output)
+		for _, testValue := range test.output {
+			for _, actualValue := range actual {
+				if testValue != actualValue {
+					t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, actual, test.output)
+				}
+			}
 		}
 	}
+}
+
+func StreamToByte(stream io.Reader) []byte {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.Bytes()
 }
