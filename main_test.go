@@ -1,57 +1,34 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"net/http"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 var (
-	testInput       = "http://www.blankwebsite.com/"
-	testResponse, _ = http.Get(testInput)
-	testBody        = testResponse.Body
+	testInput    = "http://www.blankwebsite.com/"
+	testInput2   = "https://en.wikipedia.org/wiki/Ken_Thompson"
+	invalidInput = "http://invalidurl.com/"
 )
-
-func TestGetResponseBody(t *testing.T) {
-	tests := []struct {
-		input string
-		body  io.Reader
-	}{
-		{input: testInput, body: testBody},
-	}
-
-	for _, test := range tests {
-		err := GetResponseBody(test.input)
-		res := bytes.Equal(StreamToByte(err), StreamToByte(test.body))
-		if res != true {
-			t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, err, test.body)
-		}
-	}
-}
 
 func TestGetAnchorLinks(t *testing.T) {
 	tests := []struct {
-		input  io.Reader
-		output []string
+		input  string
+		output string
+		error  string
 	}{
-		{input: testBody, output: []string{"http://www.pointlesssites.com/"}},
+		{input: testInput, output: "http://www.pointlesssites.com/", error: ""},
+		{input: testInput2, output: "https://vi.wikipedia.org/wiki/Ken_Thompson", error: ""},
+		{input: invalidInput, output: "", error: "no body in the response"},
 	}
 
 	for _, test := range tests {
-		actual := GetAnchorLinks(test.input)
-		for _, testValue := range test.output {
-			for _, actualValue := range actual {
-				if testValue != actualValue {
-					t.Errorf("Input: %s was incorrect, got: %s, want: %s", test.input, actual, test.output)
-				}
-			}
+		actual, err := GetAnchorLinks(test.input)
+		if test.error != "" {
+			assert.ErrorContains(t, err, test.error)
+		}
+		if test.output != "" {
+			assert.Contains(t, actual, test.output)
 		}
 	}
-}
-
-func StreamToByte(stream io.Reader) []byte {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stream)
-	return buf.Bytes()
 }

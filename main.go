@@ -1,52 +1,57 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"golang.org/x/net/html"
-	"io"
 	"log"
 	"net/http"
 )
 
+var Links []string
+
 func main() {
-	uri := GetURI()
-	body := GetResponseBody(uri)
-	for _, v := range GetAnchorLinks(body) {
+	uri, _ := GetURI()
+	_, err := GetAnchorLinks(uri)
+	if err != nil {
+		fmt.Printf("error: %s", err)
+		return
+	}
+	for _, v := range Links {
 		fmt.Println(v)
 	}
 }
 
-func GetURI() string {
+func GetURI() (string, error) {
 	fmt.Println("Enter a valid url: ")
 	var uri string
-	fmt.Scanln(&uri)
-	return uri
+	_, err := fmt.Scanln(&uri)
+	if err != nil {
+		return "", fmt.Errorf("error: cannot scan user input")
+	}
+	return uri, nil
 }
 
-func GetResponseBody(uri string) io.Reader {
+func GetAnchorLinks(uri string) ([]string, error) {
 	log.Printf("fetching: %s", uri)
 	response, err := http.Get(uri)
 	if err != nil {
-		log.Fatalf("error retrieving site `%s`: %s", uri, err)
+		return []string{}, errors.New("no body in the response")
 	}
-	return response.Body
-}
-
-func GetAnchorLinks(body io.Reader) []string {
-	var links []string
-
+	body := response.Body
 	z := html.NewTokenizer(body)
+
 	for {
 		tt := z.Next()
 		switch tt {
 		case html.ErrorToken:
-			return links
+			return Links, nil
 		case html.StartTagToken, html.EndTagToken:
 			token := z.Token()
 			if "a" == token.Data {
 				for _, attr := range token.Attr {
 					if attr.Key == "href" {
-						links = append(links, attr.Val)
+						Links = append(Links, attr.Val)
 					}
 				}
 			}
