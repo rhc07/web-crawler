@@ -11,10 +11,14 @@ import (
 var Links []string
 
 func main() {
-	uri, _ := GetURI()
-	_, err := GetAnchorLinks(uri)
-	if err != nil {
-		fmt.Printf("error: %s", err)
+	uri, uriErr := GetURI()
+	if uriErr != nil {
+		fmt.Printf("error: %s", uriErr)
+		return
+	}
+	_, resErr := GetAnchorLinks(uri)
+	if resErr != nil {
+		fmt.Printf("error: %s", resErr)
 		return
 	}
 	for _, v := range Links {
@@ -27,7 +31,7 @@ func GetURI() (string, error) {
 	var uri string
 	_, err := fmt.Scanln(&uri)
 	if err != nil {
-		return "", fmt.Errorf("error: cannot scan user input")
+		return "", errors.New("cannot scan user input")
 	}
 	return uri, nil
 }
